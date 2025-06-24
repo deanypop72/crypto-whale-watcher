@@ -18,8 +18,12 @@ module.exports = {
   },
 
   currencies: [
-    "BTCUSD", "ETHUSD", "EOSUSD", "LTCUSD", // USD Comparative (use USD even for USDT)
-    "ETHBTC", "EOSBTC", "LTCBTC",  // BTC Comparative
+    // USD пары
+    "BTCUSD", "ETHUSD", "EOSUSD", "LTCUSD", 
+    "SOLUSD", "MATICUSD", "AVAXUSD", "ADAUSD", "DOTUSD", "LINKUSD",
+    // BTC пары
+    "ETHBTC", "EOSBTC", "LTCBTC", 
+    "SOLBTC", "MATICBTC", "AVAXBTC", "ADABTC", "DOTBTC", "LINKBTC"
   ],
   
   trade: {
@@ -27,9 +31,15 @@ module.exports = {
     min_worth: {  // Used while migrating alert limits to the database
       default: 70000, // Default value for when specific value is not specified below
       BTC: 100000,
-      LTC: 45000 ,
+      LTC: 45000,
       ETH: 65000,
-      EOS: 60000
+      EOS: 60000,
+      SOL: 50000,
+      MATIC: 40000,
+      AVAX: 45000,
+      ADA: 35000,
+      DOT: 40000,
+      LINK: 40000
     }
   },
   
@@ -38,7 +48,14 @@ module.exports = {
     min_worth: {  // Used while migrating alert limits to the database
       default: 700000, // Default value for when specific value is not specified below
       BTC: 1000000,
-      LTC: 500000
+      LTC: 500000,
+      ETH: 800000,
+      SOL: 600000,
+      MATIC: 400000,
+      AVAX: 500000,
+      ADA: 350000,
+      DOT: 450000,
+      LINK: 450000
     }
   }
 }
