@@ -101,8 +101,9 @@ if(exchanges.bitfinex) {
 }
 
 if(exchanges.coinbase) {
-  const connectGdax = () => {
-    sockets.gdax = new WebSocket('wss://ws-feed.exchange.coinbase.com');
+  const urls = ['wss://ws-feed.exchange.coinbase.com', 'wss://ws-feed.pro.coinbase.com'];
+  const connectGdax = (urlIndex = 0) => {
+    sockets.gdax = new WebSocket(urls[urlIndex]);
 
     sockets.gdax.on('open', () => {
 
@@ -127,12 +128,22 @@ if(exchanges.coinbase) {
     });
 
     sockets.gdax.on('error', (err) => {
-      console.log('gdax', err.code, '-', JSON.stringify(err.message));
+      console.log('gdax', err && err.code, '-', JSON.stringify(err && err.message));
+    });
+
+    sockets.gdax.on('unexpected-response', (req, res) => {
+      console.log('gdax unexpected response', res.statusCode);
+      if (urlIndex === 0) {
+        console.log('gdax switching to fallback websocket URL');
+        connectGdax(1);
+      } else {
+        setTimeout(() => connectGdax(urlIndex), 10000);
+      }
     });
 
     sockets.gdax.on('close', () => {
       console.log('gdax connection closed, retrying in 10s');
-      setTimeout(connectGdax, 10000);
+      setTimeout(() => connectGdax(urlIndex), 10000);
     });
   };
 
