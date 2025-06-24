@@ -101,32 +101,42 @@ if(exchanges.bitfinex) {
 }
 
 if(exchanges.coinbase) {
-  sockets.coinbase = new WebSocket('wss://ws-feed.pro.coinbase.com')
+  const connectGdax = () => {
+    sockets.gdax = new WebSocket('wss://ws-feed.exchange.coinbase.com');
 
-  sockets.coinbase.on('open', () => {
- 
-    let request_object = {     
-      "type": "subscribe",     
-      "product_ids": getPairs("coinbase"),     
-      "channels": ["matches"] 
-    }
-  
-    sockets.coinbase.send(JSON.stringify(request_object))
-  
-    request_object.channels = ["level2"];
-    sockets.coinbase.send(JSON.stringify(request_object))
-  });
-  
-  sockets.coinbase.on('message', (data) => {
-    let obj = JSON.parse(data);
-    if(obj.type == "last_match" || obj.type == "match")
-      trade.coinbase(obj);
-    // else if(obj.type == "l2update")
-      // wall.coinbase(obj);
-  })
-  sockets.coinbase.on('error', (err) => {
-    console.log('coinbase', err.code, '-', JSON.stringify(err.message));
-  });
+    sockets.gdax.on('open', () => {
+
+      let request_object = {
+        "type": "subscribe",
+        "product_ids": getPairs("gdax"),
+        "channels": ["matches"]
+      };
+
+      sockets.gdax.send(JSON.stringify(request_object));
+
+      request_object.channels = ["level2"];
+      sockets.gdax.send(JSON.stringify(request_object));
+    });
+
+    sockets.gdax.on('message', (data) => {
+      let obj = JSON.parse(data);
+      if(obj.type == "last_match" || obj.type == "match")
+        trade.gdax(obj);
+      // else if(obj.type == "l2update")
+        // wall.gdax(obj);
+    });
+
+    sockets.gdax.on('error', (err) => {
+      console.log('gdax', err.code, '-', JSON.stringify(err.message));
+    });
+
+    sockets.gdax.on('close', () => {
+      console.log('gdax connection closed, retrying in 10s');
+      setTimeout(connectGdax, 10000);
+    });
+  };
+
+  connectGdax();
 }
 
 
