@@ -1,0 +1,464 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+require('dotenv').config();
+var app = require('../app');
+var debug = require('debug')('whale-tracker:server');
+var http = require('http');
+
+const WebSocket = require('ws');
+const trade = require('../lib/trades');
+const wall = require('../lib/orders');
+const {getPairs} = require('../lib/pairs');
+const exchanges = require('../config.js').exchanges;
+
+
+// ========================================== WebSockets ========================================
+let sockets = {}
+
+const buildBinanceSocket = () => {
+  let stream = "";
+  getPairs("binance").forEach((pair, index) => {
+    pair = pair.toLowerCase();
+    if(index != 0)
+      stream += "/";
+  
+    stream += `${pair}@aggTrade/${pair}@depth`;
+  });
+  return stream;
+}
+
+if(exchanges.binance) {
+  sockets.binance = new WebSocket('wss://stream.binance.com:9443/stream?streams='+ buildBinanceSocket());
+  
+  const refreshStream = () => {
+    sockets.binance = new WebSocket('wss://stream.binance.com:9443/stream?streams='+ buildBinanceSocket());  
+  }
+  
+  // Binance API documentation says the streams expire after 24 hours.
+  // Re-subscribing to the stream after 20 hours
+  setInterval(refreshStream, 72000000);
+  
+  sockets.binance.on('message', function(data) {
+    let obj = JSON.parse(data).data;
+    if(obj.e == "aggTrade")
+      trade.binance(obj);
+    else if(obj.e == "depthUpdate")
+      wall.binance(obj);
+  });
+  sockets.binance.on('error', (err) => {
+    console.log('binance', err.code, '-', JSON.stringify(err.message));
+  });
+}
+
+if(exchanges.bitfinex) {
+  sockets.bitfinex = new WebSocket('wss://api.bitfinex.com/ws/2'),
+
+  sockets.bitfinex.on('open', () => {
+    const symbols = getPairs();
+  
+    let request_object = { 
+      event: "subscribe", 
+      channel: "trades", 
+      symbol: "" 
+    }
+  
+    symbols.forEach(symbol => {
+      request_object.symbol = symbol;
+      sockets.bitfinex.send(JSON.stringify(request_object))
+    });
+  
+    request_object = { 
+      event: "subscribe", 
+      channel: "book", 
+      symbol: "",
+      prec: "P0", // Aggregation of price levels
+      freq: "F1", // Frequency of stream: F1 - Every 2 seconds
+      length: "25"  
+    }
+  
+    symbols.forEach(symbol => {
+      request_object.symbol = symbol;
+      sockets.bitfinex.send(JSON.stringify(request_object))
+    });
+  
+  });
+  
+  sockets.bitfinex.on('message', (data) => {
+    let obj = JSON.parse(data);
+    if(obj.channel == "trades" || obj[2] != undefined)
+      trade.bitfinex(obj);
+    else if(obj.event != "info") {
+      wall.bitfinex(obj);
+    }
+  });
+  sockets.bitfinex.on('error', (err) => {
+    console.log('bitfinex', err.code, '-', JSON.stringify(err.message));
+  });
+
+}
+
+if(exchanges.coinbase) {
+  sockets.coinbase = new WebSocket('wss://ws-feed.pro.coinbase.com')
+
+  sockets.coinbase.on('open', () => {
+ 
+    let request_object = {     
+      "type": "subscribe",     
+      "product_ids": getPairs("coinbase"),     
+      "channels": ["matches"] 
+    }
+  
+    sockets.coinbase.send(JSON.stringify(request_object))
+  
+    request_object.channels = ["level2"];
+    sockets.coinbase.send(JSON.stringify(request_object))
+  });
+  
+  sockets.coinbase.on('message', (data) => {
+    let obj = JSON.parse(data);
+    if(obj.type == "last_match" || obj.type == "match")
+      trade.coinbase(obj);
+    // else if(obj.type == "l2update")
+      // wall.coinbase(obj);
+  })
+  sockets.coinbase.on('error', (err) => {
+    console.log('coinbase', err.code, '-', JSON.stringify(err.message));
+  });
+}
+
+// Bybit WebSocket Connection with enhanced error handling
+if(exchanges.bybit) {
+  let bybitReconnectAttempts = 0;
+  const maxReconnectAttempts = 10; // Reduced max attempts
+  const baseReconnectDelay = 4000; // Increased base delay to 4 seconds
+  let bybitConnectionTimeout;
+  let bybitConnectionStatus = 'disconnected'; // Track connection status
+  
+  // Try multiple endpoints if one fails
+  const bybitEndpoints = [
+    'wss://stream.bybit.com/v5/public/spot',
+    'wss://stream-testnet.bybit.com/v5/public/spot', // Fallback endpoint
+    'wss://stream.bytick.com/v5/public/spot' // Alternative endpoint
+  ];
+  let currentEndpointIndex = 0;
+  
+  const connectBybit = () => {
+    if(bybitReconnectAttempts >= maxReconnectAttempts) {
+      console.log('Bybit: Max reconnection attempts reached, will retry in 10 minutes...');
+      console.log('Bybit: Consider checking your internet connection or geographic restrictions');
+      setTimeout(() => {
+        bybitReconnectAttempts = 0; // Reset after cooling down
+        currentEndpointIndex = 0; // Reset endpoint selection
+        connectBybit();
+      }, 600000); // 10 minutes
+      return;
+    }
+    
+    const currentEndpoint = bybitEndpoints[currentEndpointIndex];
+    console.log(`Bybit: Connecting to ${currentEndpoint}... (attempt ${bybitReconnectAttempts + 1})`);
+    bybitConnectionStatus = 'connecting';
+    
+    // Set connection timeout
+    bybitConnectionTimeout = setTimeout(() => {
+      if(sockets.bybit && sockets.bybit.readyState === WebSocket.CONNECTING) {
+        console.log('Bybit: Connection timeout after 15 seconds, terminating...');
+        sockets.bybit.terminate();
+        bybitConnectionStatus = 'failed';
+      }
+    }, 15000); // 15 second timeout
+    
+    try {
+      sockets.bybit = new WebSocket(currentEndpoint, {
+        perMessageDeflate: false,
+        handshakeTimeout: 15000,
+        // Add headers to identify as legitimate client
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Origin': 'https://www.bybit.com',
+          'Cache-Control': 'no-cache'
+        }
+      });
+    } catch (error) {
+      console.log('Bybit: Failed to create WebSocket:', error.message);
+      if(bybitConnectionTimeout) clearTimeout(bybitConnectionTimeout);
+      bybitConnectionStatus = 'failed';
+      
+      // Try next endpoint or increase attempts
+      currentEndpointIndex = (currentEndpointIndex + 1) % bybitEndpoints.length;
+      if(currentEndpointIndex === 0) bybitReconnectAttempts++; // Only increment when we've tried all endpoints
+      
+      const delay = Math.min(baseReconnectDelay * Math.pow(1.5, bybitReconnectAttempts), 60000); // Max 60 seconds
+      setTimeout(() => {
+        connectBybit();
+      }, delay);
+      return;
+    }
+
+    sockets.bybit.on('open', () => {
+      console.log('Bybit WebSocket connected successfully to', currentEndpoint);
+      if(bybitConnectionTimeout) clearTimeout(bybitConnectionTimeout);
+      bybitReconnectAttempts = 0; // Reset counter on successful connection
+      currentEndpointIndex = 0; // Reset to primary endpoint for next connection
+      bybitConnectionStatus = 'connected';
+      
+      const pairs = getPairs("bybit"); // Gets BTCUSDT, ETHUSDT, SOLUSDT
+      let topics = pairs.map(pair => `publicTrade.${pair}`);
+      
+      let request_object = {
+        "op": "subscribe",
+        "args": topics
+      }
+      
+      console.log('Bybit subscribing to:', topics);
+      sockets.bybit.send(JSON.stringify(request_object));
+      
+      // Send heartbeat every 20 seconds - correct format for Bybit v5
+      if(sockets.bybit.heartbeat) clearInterval(sockets.bybit.heartbeat);
+      sockets.bybit.heartbeat = setInterval(() => {
+        if(sockets.bybit && sockets.bybit.readyState === WebSocket.OPEN) {
+          try {
+            sockets.bybit.send('ping'); // Bybit v5 expects raw 'ping' string
+          } catch (error) {
+            console.log('Bybit: Heartbeat send error:', error.message);
+          }
+        }
+      }, 20000);
+    });
+    
+    sockets.bybit.on('message', (data) => {
+      try {
+        // Handle pong responses
+        if(data.toString() === 'pong') {
+          return;
+        }
+        
+        let obj = JSON.parse(data);
+        
+        // Handle subscription confirmation
+        if(obj.op === 'subscribe' && obj.success) {
+          console.log('Bybit subscription confirmed:', obj.args || 'success');
+          return;
+        }
+        
+        // Handle error responses
+        if(obj.op === 'subscribe' && !obj.success) {
+          console.log('Bybit subscription failed:', obj);
+          return;
+        }
+        
+        // Handle trade data
+        if(obj.topic && obj.topic.startsWith('publicTrade.')) {
+          trade.bybit(obj);
+        }
+      } catch(e) {
+        console.log('Bybit JSON parse error:', e.message);
+      }
+    });
+    
+    sockets.bybit.on('error', (err) => {
+      console.log('Bybit error:', err.code || err.message || err);
+      bybitConnectionStatus = 'error';
+      if(bybitConnectionTimeout) clearTimeout(bybitConnectionTimeout);
+    });
+    
+    sockets.bybit.on('close', (code, reason) => {
+      console.log(`Bybit connection closed: ${code} ${reason.toString()}, attempting to reconnect...`);
+      bybitConnectionStatus = 'disconnected';
+      if(bybitConnectionTimeout) clearTimeout(bybitConnectionTimeout);
+      if(sockets.bybit && sockets.bybit.heartbeat) clearInterval(sockets.bybit.heartbeat);
+      
+      if(exchanges.bybit) {
+        // Try next endpoint before incrementing attempts  
+        currentEndpointIndex = (currentEndpointIndex + 1) % bybitEndpoints.length;
+        if(currentEndpointIndex === 0) bybitReconnectAttempts++; // Only increment when we've tried all endpoints
+        
+        const delay = Math.min(baseReconnectDelay * Math.pow(1.5, bybitReconnectAttempts), 60000); // Max 60 seconds
+        console.log(`Bybit: Reconnecting in ${delay}ms...`);
+        setTimeout(() => {
+          connectBybit();
+        }, delay);
+      }
+    });
+  };
+  
+  connectBybit();
+}
+
+// OKX WebSocket Connection  
+if(exchanges.okx) {
+  let okxReconnectAttempts = 0;
+  const maxReconnectAttempts = 10;
+  const baseReconnectDelay = 1000;
+  
+  const connectOKX = () => {
+    if(okxReconnectAttempts >= maxReconnectAttempts) {
+      console.log('OKX: Max reconnection attempts reached, stopping...');
+      return;
+    }
+    
+    console.log(`OKX: Connecting... (attempt ${okxReconnectAttempts + 1})`);
+    sockets.okx = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
+
+    sockets.okx.on('open', () => {
+      console.log('OKX WebSocket connected');
+      okxReconnectAttempts = 0; // Reset counter on successful connection
+      const pairs = getPairs("okx"); // Gets BTC-USDT, ETH-USDT, SOL-USDT
+      
+      let args = pairs.map(pair => ({
+        "channel": "trades",
+        "instId": pair
+      }));
+      
+      let request_object = {
+        "op": "subscribe",
+        "args": args
+      }
+      
+      console.log('OKX subscribing to:', pairs);
+      sockets.okx.send(JSON.stringify(request_object));
+      
+      // Send heartbeat every 30 seconds - OKX expects 'ping' string
+      if(sockets.okx.heartbeat) clearInterval(sockets.okx.heartbeat);
+      sockets.okx.heartbeat = setInterval(() => {
+        if(sockets.okx.readyState === WebSocket.OPEN) {
+          sockets.okx.send("ping");
+        }
+      }, 30000);
+    });
+    
+    sockets.okx.on('message', (data) => {
+      try {
+        // Handle pong responses
+        if(data.toString() === 'pong') {
+          return;
+        }
+        
+        let obj = JSON.parse(data);
+        
+        // Handle subscription confirmation
+        if(obj.event === 'subscribe') {
+          console.log('OKX subscription confirmed:', obj);
+          return;
+        }
+        
+        // Handle trade data
+        if(obj.arg && obj.arg.channel === 'trades') {
+          trade.okx(obj);
+        }
+      } catch(e) {
+        console.log('OKX JSON parse error:', e.message);
+      }
+    });
+    
+    sockets.okx.on('error', (err) => {
+      console.log('okx error:', err.message || err);
+    });
+    
+    sockets.okx.on('close', (code, reason) => {
+      console.log(`OKX connection closed: ${code} ${reason}, attempting to reconnect...`);
+      if(sockets.okx.heartbeat) clearInterval(sockets.okx.heartbeat);
+      
+      if(exchanges.okx) {
+        okxReconnectAttempts++;
+        const delay = Math.min(baseReconnectDelay * Math.pow(2, okxReconnectAttempts), 30000);
+        setTimeout(() => {
+          connectOKX();
+        }, delay);
+      }
+    });
+  };
+  
+  connectOKX();
+}
+
+
+// sockets.binance.close();
+// sockets.bitfinex.close();
+// soclets.coinbase.close();
+
+// ========================================== WebSockets ========================================
+
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
