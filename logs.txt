@@ -1,3 +1,10 @@
+Last login: Wed Jun 25 13:48:02 on ttys000
+denchick@Tanyas-MacBook-Air crypto-whale-watcher % npm start
+
+> crypto-whale-watcher@1.1.1 start
+> node ./bin/www
+
+✓ DB connected
 🔄 Refreshing volumes for all exchanges...
 📝 Bybit pairs to fetch: BTCUSDT, ETHUSDT, SOLUSDT, ETHBTC, SOLBTC
 🔍 Fetching Bybit volume: https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT
@@ -13,8 +20,8 @@
 🔍 Fetching OKX volume: https://www.okx.com/api/v5/market/ticker?instId=SOL-BTC
 Bybit: Connecting to wss://stream.bybit.com/v5/public/spot... (attempt 1)
 OKX: Connecting... (attempt 1)
-OKX: Loaded min_worth from DB: { BTCU: 100, ETH: 50, ETHU: 100, SOL: 20, SOLU: 100 }
 OKX: Loaded volume_filter from DB: 0 (raw value: 0 )
+OKX: Loaded min_worth from DB: { BTCU: 100, ETH: 50, ETHU: 100, SOL: 20, SOLU: 100 }
 Bybit WebSocket connected successfully to wss://stream.bybit.com/v5/public/spot
 Bybit subscribing to: [
   'publicTrade.BTCUSDT',
@@ -25,99 +32,240 @@ Bybit subscribing to: [
 ]
 OKX WebSocket connected
 OKX subscribing to: [ 'BTC-USDT', 'ETH-USDT', 'SOL-USDT', 'ETH-BTC', 'SOL-BTC' ]
-📊 Binance ETHBTC: 23507.1917
-📊 Binance ETHUSDT: 437761.7869
 Bybit subscription confirmed: success
-📊 Binance SOLUSDT: 2340252.273
-📊 Binance BTCUSDT: 12149.04085
-📊 Binance SOLBTC: 54144.727
-📊 Bybit ETHBTC: 6160.31411
-📊 Bybit SOLBTC: 36550.633
-📊 Bybit SOLUSDT: 807498.704
-📊 Bybit BTCUSDT: 7606.465221
+📊 Binance ETHUSDT: 434713.5971
+📊 Binance SOLBTC: 53334.821
+📊 Binance ETHBTC: 22897.4364
+📊 Binance BTCUSDT: 12040.40895
+📊 Binance SOLUSDT: 2323669.771
 OKX subscription confirmed: {
   event: 'subscribe',
   arg: { channel: 'trades', instId: 'BTC-USDT' },
-  connId: '664c9c41'
+  connId: '20cd43b1'
 }
 OKX subscription confirmed: {
   event: 'subscribe',
   arg: { channel: 'trades', instId: 'ETH-USDT' },
-  connId: '664c9c41'
+  connId: '20cd43b1'
 }
 OKX subscription confirmed: {
   event: 'subscribe',
   arg: { channel: 'trades', instId: 'SOL-USDT' },
-  connId: '664c9c41'
+  connId: '20cd43b1'
 }
 OKX subscription confirmed: {
   event: 'subscribe',
   arg: { channel: 'trades', instId: 'ETH-BTC' },
-  connId: '664c9c41'
+  connId: '20cd43b1'
 }
 OKX subscription confirmed: {
   event: 'subscribe',
   arg: { channel: 'trades', instId: 'SOL-BTC' },
-  connId: '664c9c41'
+  connId: '20cd43b1'
 }
-📊 Bybit ETHUSDT: 154178.63078
-📊 Bitfinex SOLBTC: 314.6726397
-📊 Bitfinex ETHBTC: 76.61749647
-bitfinex: Unexpected ticker response for ETHUSDT - null
-bitfinex: Unexpected ticker response for SOLUSDT - null
-bitfinex: Unexpected ticker response for BTCUSDT - null
-📊 OKX BTC-USDT: 4927.15457776
-📊 OKX ETH-BTC: 4143.231442
-📊 OKX ETH-USDT: 206590.712971
-📊 OKX SOL-USDT: 726551.594126
-📊 OKX SOL-BTC: 23805.6979
-OKX Trade: BTC-USDT - sell 0.00184735 at 106543.9
-Trade worth: $196.82
+📊 Bybit BTCUSDT: 7514.647038
+📊 Bybit SOLUSDT: 797526.822
+📊 Bybit ETHBTC: 6135.77634
+📊 Bitfinex ETHUST: 396.26385295
+📊 Bybit SOLBTC: 36119.389
+📊 Bybit ETHUSDT: 152923.27549
+📊 Bitfinex BTCUST: 78.38898613
+📊 Bitfinex SOLBTC: 316.38616083
+📊 Bitfinex ETHBTC: 76.62056309
+📊 OKX ETH-USDT: 204327.995766
+📊 OKX ETH-BTC: 4103.141043
+📊 OKX SOL-USDT: 722573.582573
+📊 OKX BTC-USDT: 4890.49985135
+📊 OKX SOL-BTC: 23384.0666
+OKX Trade: BTC-USDT - buy 0.00005348 at 106578.1
+Trade worth: $5.70
 Currency: BTC, Currency key: BTCU
 Min worth for BTCU: 100
 Volume filter: 0
 Alerts enabled: true
-Volume for BTC-USDT: 4927.15457776
+❌ Trade worth 5.70 below threshold 100
+📊 Bitfinex SOLUST: 1096.64566283
+OKX Trade: ETH-USDT - buy 0.789608 at 2441.4
+Trade worth: $1927.75
+Currency: ETH, Currency key: ETH
+Min worth for ETH: 50
+Volume filter: 0
+Alerts enabled: true
+Volume for ETH-USDT: 204327.995766
+Volume filter disabled (0), allowing trade
+📧 Sending message for ETH-USDT trade!
+gdax 526 - "error code: 526"
+gdax 526 - "error code: 526"
+OKX Trade: BTC-USDT - buy 0.00005723 at 106578.1
+Trade worth: $6.10
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+❌ Trade worth 6.10 below threshold 100
+gdax 526 - "error code: 526"
+gdax 526 - "error code: 526"
+gdax 526 - "error code: 526"
+OKX Trade: ETH-USDT - sell 0.002 at 2441.27
+Trade worth: $4.88
+Currency: ETH, Currency key: ETH
+Min worth for ETH: 50
+Volume filter: 0
+Alerts enabled: true
+❌ Trade worth 4.88 below threshold 50
+OKX Trade: BTC-USDT - sell 0.05515473 at 106578
+Trade worth: $5878.28
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+Volume for BTC-USDT: 4890.49985135
 Volume filter disabled (0), allowing trade
 📧 Sending message for BTC-USDT trade!
-OKX Trade: BTC-USDT - buy 0.00004207 at 106544
-Trade worth: $4.48
+OKX Trade: BTC-USDT - sell 0.28859401 at 106578
+Trade worth: $30757.77
 Currency: BTC, Currency key: BTCU
 Min worth for BTCU: 100
 Volume filter: 0
 Alerts enabled: true
-❌ Trade worth 4.48 below threshold 100
-OKX Trade: ETH-USDT - buy 0.025 at 2439.28
-Trade worth: $60.98
+Volume for BTC-USDT: 4890.49985135
+Volume filter disabled (0), allowing trade
+📧 Sending message for BTC-USDT trade!
+OKX Trade: BTC-USDT - buy 0.00001 at 106577.2
+Trade worth: $1.07
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+❌ Trade worth 1.07 below threshold 100
+OKX Trade: BTC-USDT - sell 0.00132956 at 106577.1
+Trade worth: $141.70
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+Volume for BTC-USDT: 4890.49985135
+Volume filter disabled (0), allowing trade
+📧 Sending message for BTC-USDT trade!
+OKX Trade: BTC-USDT - sell 0.00001 at 106576.9
+Trade worth: $1.07
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+❌ Trade worth 1.07 below threshold 100
+OKX Trade: ETH-USDT - buy 0.009 at 2441.22
+Trade worth: $21.97
 Currency: ETH, Currency key: ETH
 Min worth for ETH: 50
 Volume filter: 0
 Alerts enabled: true
-Volume for ETH-USDT: 206590.712971
-Volume filter disabled (0), allowing trade
-📧 Sending message for ETH-USDT trade!
-OKX Trade: ETH-USDT - sell 0.03276 at 2439.39
-Trade worth: $79.91
-Currency: ETH, Currency key: ETH
-Min worth for ETH: 50
-Volume filter: 0
-Alerts enabled: true
-Volume for ETH-USDT: 206590.712971
-Volume filter disabled (0), allowing trade
-📧 Sending message for ETH-USDT trade!
-gdax 526 - "error code: 526"
-gdax 526 - "error code: 526"
-gdax 526 - "error code: 526"
-gdax 526 - "error code: 526"
-OKX Trade: SOL-USDT - buy 0.160192 at 146.53
-Trade worth: $23.47
+❌ Trade worth 21.97 below threshold 50
+OKX Trade: SOL-USDT - sell 0.422051 at 146.53
+Trade worth: $61.84
 Currency: SOL, Currency key: SOL
 Min worth for SOL: 20
 Volume filter: 0
 Alerts enabled: true
-Volume for SOL-USDT: 726551.594126
+Volume for SOL-USDT: 722573.582573
 Volume filter disabled (0), allowing trade
 📧 Sending message for SOL-USDT trade!
-gdax 526 - "error code: 526"
-OKX Trade: BTC-USDT - sell 0.00913382 at 106543.9
-Trade worth: $973.15
+OKX Trade: BTC-USDT - buy 0.00003096 at 106576.1
+Trade worth: $3.30
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+❌ Trade worth 3.30 below threshold 100
+📊 Current exchange volumes:
+Binance: {
+  ETHUSDT: 434713.5971,
+  SOLBTC: 53334.821,
+  ETHBTC: 22897.4364,
+  BTCUSDT: 12040.40895,
+  SOLUSDT: 2323669.771
+}
+Bitfinex: {
+  ETHUST: 396.26385295,
+  BTCUST: 78.38898613,
+  SOLBTC: 316.38616083,
+  ETHBTC: 76.62056309,
+  SOLUST: 1096.64566283
+}
+GDAX: {}
+Bybit: {
+  BTCUSDT: 7514.647038,
+  SOLUSDT: 797526.822,
+  ETHBTC: 6135.77634,
+  SOLBTC: 36119.389,
+  ETHUSDT: 152923.27549
+}
+OKX: {
+  'ETH-USDT': 204327.995766,
+  'ETH-BTC': 4103.141043,
+  'SOL-USDT': 722573.582573,
+  'BTC-USDT': 4890.49985135,
+  'SOL-BTC': 23384.0666
+}
+OKX Trade: BTC-USDT - sell 0.00262288 at 106576
+Trade worth: $279.54
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+Volume for BTC-USDT: 4890.49985135
+Volume filter disabled (0), allowing trade
+📧 Sending message for BTC-USDT trade!
+OKX Trade: BTC-USDT - sell 0.01 at 106575.8
+Trade worth: $1065.76
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+Volume for BTC-USDT: 4890.49985135
+Volume filter disabled (0), allowing trade
+📧 Sending message for BTC-USDT trade!
+OKX Trade: BTC-USDT - sell 0.0018907 at 106574
+Trade worth: $201.50
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+Volume for BTC-USDT: 4890.49985135
+Volume filter disabled (0), allowing trade
+📧 Sending message for BTC-USDT trade!
+OKX Trade: BTC-USDT - sell 0.002 at 106573.7
+Trade worth: $213.15
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+Volume for BTC-USDT: 4890.49985135
+Volume filter disabled (0), allowing trade
+📧 Sending message for BTC-USDT trade!
+OKX Trade: BTC-USDT - sell 0.00001 at 106573.6
+Trade worth: $1.07
+Currency: BTC, Currency key: BTCU
+Min worth for BTCU: 100
+Volume filter: 0
+Alerts enabled: true
+
+📧 Sending message for ETH-USDT trade!
+/Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/lib/orders/binance.js:158
+      outlier = parseFloat(book[symbol].bids[book[symbol].bids.length-1][0]) + (24*sd(book[symbol].bids));
+                                                                        ^
+
+TypeError: Cannot read properties of undefined (reading '0')
+    at Object.binance (/Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/lib/orders/binance.js:158:73)
+    at WebSocket.<anonymous> (/Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/bin/www:49:12)
+    at WebSocket.emit (node:events:518:28)
+    at Receiver.receiverOnMessage (/Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/node_modules/ws/lib/websocket.js:800:20)
+    at Receiver.emit (node:events:518:28)
+    at Receiver.dataMessage (/Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/node_modules/ws/lib/receiver.js:436:14)
+    at /Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/node_modules/ws/lib/receiver.js:393:23
+    at /Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/node_modules/ws/lib/permessage-deflate.js:306:9
+    at /Users/denchick/Documents/WHALE_WATCHER/crypto-whale-watcher/node_modules/ws/lib/permessage-deflate.js:385:7
+    at afterWrite (node:internal/streams/writable:710:5)
+
+Node.js v22.16.0
+denchick@Tanyas-MacBook-Air crypto-whale-watcher % 
