@@ -57,7 +57,7 @@ if(exchanges.bitfinex) {
   sockets.bitfinex = new WebSocket('wss://api.bitfinex.com/ws/2'),
 
   sockets.bitfinex.on('open', () => {
-    const symbols = getPairs();
+    const symbols = getPairs('bitfinex');
   
     let request_object = { 
       event: "subscribe", 
@@ -66,7 +66,7 @@ if(exchanges.bitfinex) {
     }
   
     symbols.forEach(symbol => {
-      request_object.symbol = symbol;
+      request_object.symbol = `t${symbol}`;
       sockets.bitfinex.send(JSON.stringify(request_object))
     });
   
@@ -80,7 +80,7 @@ if(exchanges.bitfinex) {
     }
   
     symbols.forEach(symbol => {
-      request_object.symbol = symbol;
+      request_object.symbol = `t${symbol}`;
       sockets.bitfinex.send(JSON.stringify(request_object))
     });
   
