@@ -27,10 +27,10 @@ module.exports = {
   trade: {
     alerts: true,
     min_worth: {  // Used while migrating alert limits to the database
-      default: 100, // Lowered for testing
-      BTC: 500,    // Lowered for testing
-      ETH: 50,     // Lowered for testing
-      SOL: 20      // Lowered for testing
+      default: 70000, // Lowered for testing
+      BTC: 1000000,    // Lowered for testing
+      ETH: 550000,     // Lowered for testing
+      SOL: 400000      // Lowered for testing
     }
   },
   
